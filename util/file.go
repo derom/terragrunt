@@ -141,7 +141,7 @@ func GetPathRelativeTo(path string, basePath string) (string, error) {
 func ReadFileAsString(path string) (string, error) {
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
-		return "", errors.WithStackTraceAndPrefix(err, "Error reading file at path %s", path)
+		return "", errors.WithStackTraceAndPrefix(err, "Error reading file at path %s", MakePathForLogs(path))
 	}
 
 	return string(bytes), nil
@@ -424,4 +424,22 @@ type PathIsNotDirectory struct {
 
 func (err PathIsNotDirectory) Error() string {
 	return fmt.Sprintf("%s is not a directory", err.path)
+}
+
+func MakePathForLogs(path string) string {
+	var finalPath string = path
+	basePath, getwdErr := os.Getwd()
+	if getwdErr != nil {
+		return finalPath
+	}
+	// check log level
+	if true {
+		path, err := GetPathRelativeTo(path, basePath)
+		if err != nil {
+			return finalPath
+		}
+		finalPath = path
+	}
+
+	return finalPath
 }
