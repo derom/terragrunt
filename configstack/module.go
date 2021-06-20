@@ -31,9 +31,9 @@ type TerraformModule struct {
 func (module *TerraformModule) String() string {
 	dependencies := []string{}
 	for _, dependency := range module.Dependencies {
-		dependencies = append(dependencies, util.PathForLogs(dependency.Path))
+		dependencies = append(dependencies, util.PathForOutput(dependency.Path))
 	}
-	return fmt.Sprintf("Module %s (excluded: %v, dependencies: [%s])", util.PathForLogs(module.Path), module.FlagExcluded, strings.Join(dependencies, ", "))
+	return fmt.Sprintf("Module %s (excluded: %v, dependencies: [%s])", util.PathForOutput(module.Path), module.FlagExcluded, strings.Join(dependencies, ", "))
 }
 
 // Go through each of the given Terragrunt configuration files and resolve the module that configuration file represents
@@ -288,7 +288,7 @@ func resolveTerraformModule(terragruntConfigPath string, terragruntOptions *opti
 		if err != nil {
 			return nil, err
 		}
-		terragruntOptions.Logger.Debugf("Setting download directory for module %s to %s", util.PathForLogs(modulePath), util.PathForLogs(downloadDir))
+		terragruntOptions.Logger.Debugf("Setting download directory for module %s to %s", util.PathForOutput(modulePath), util.PathForOutput(downloadDir))
 		opts.DownloadDir = downloadDir
 	}
 
@@ -298,7 +298,7 @@ func resolveTerraformModule(terragruntConfigPath string, terragruntOptions *opti
 		return nil, err
 	}
 	if (terragruntConfig.Terraform == nil || terragruntConfig.Terraform.Source == nil || *terragruntConfig.Terraform.Source == "") && matches == nil {
-		terragruntOptions.Logger.Debugf("Module %s does not have an associated terraform configuration and will be skipped.", util.PathForLogs(filepath.Dir(terragruntConfigPath)))
+		terragruntOptions.Logger.Debugf("Module %s does not have an associated terraform configuration and will be skipped.", util.PathForOutput(filepath.Dir(terragruntConfigPath)))
 		return nil, nil
 	}
 
@@ -380,7 +380,7 @@ func resolveExternalDependenciesForModule(module *TerraformModule, moduleMap map
 		}
 	}
 
-	howThesePathsWereFound := fmt.Sprintf("dependency of module at '%s'", util.PathForLogs(module.Path))
+	howThesePathsWereFound := fmt.Sprintf("dependency of module at '%s'", util.PathForOutput(module.Path))
 	return resolveModules(externalTerragruntConfigPaths, terragruntOptions, howThesePathsWereFound)
 }
 
@@ -388,16 +388,16 @@ func resolveExternalDependenciesForModule(module *TerraformModule, moduleMap map
 // applied. If the user selects "yes", then Terragrunt will apply that module as well.
 func confirmShouldApplyExternalDependency(module *TerraformModule, dependency *TerraformModule, terragruntOptions *options.TerragruntOptions) (bool, error) {
 	if terragruntOptions.IncludeExternalDependencies {
-		terragruntOptions.Logger.Debugf("The --terragrunt-include-external-dependencies flag is set, so automatically including all external dependencies, and will run this command against module %s, which is a dependency of module %s.", util.PathForLogs(dependency.Path), util.PathForLogs(module.Path))
+		terragruntOptions.Logger.Debugf("The --terragrunt-include-external-dependencies flag is set, so automatically including all external dependencies, and will run this command against module %s, which is a dependency of module %s.", util.PathForOutput(dependency.Path), util.PathForOutput(module.Path))
 		return true, nil
 	}
 
 	if terragruntOptions.NonInteractive {
-		terragruntOptions.Logger.Debugf("The --non-interactive flag is set. To avoid accidentally affecting external dependencies with an xxx-all command, will not run this command against module %s, which is a dependency of module %s.", util.PathForLogs(dependency.Path), util.PathForLogs(module.Path))
+		terragruntOptions.Logger.Debugf("The --non-interactive flag is set. To avoid accidentally affecting external dependencies with an xxx-all command, will not run this command against module %s, which is a dependency of module %s.", util.PathForOutput(dependency.Path), util.PathForOutput(module.Path))
 		return false, nil
 	}
 
-	prompt := fmt.Sprintf("Module %s depends on module %s, which is an external dependency outside of the current working directory. Should Terragrunt run this external dependency? Warning, if you say 'yes', Terragrunt will make changes in %s as well!", util.PathForLogs(module.Path), util.PathForLogs(dependency.Path), util.PathForLogs(dependency.Path))
+	prompt := fmt.Sprintf("Module %s depends on module %s, which is an external dependency outside of the current working directory. Should Terragrunt run this external dependency? Warning, if you say 'yes', Terragrunt will make changes in %s as well!", util.PathForOutput(module.Path), util.PathForOutput(dependency.Path), util.PathForOutput(dependency.Path))
 	return shell.PromptUserForYesNo(prompt, terragruntOptions)
 }
 
@@ -488,7 +488,7 @@ type UnrecognizedDependency struct {
 }
 
 func (err UnrecognizedDependency) Error() string {
-	return fmt.Sprintf("Module %s specifies %s as a dependency, but that dependency was not one of the ones found while scanning subfolders: %v", util.PathForLogs(err.ModulePath), util.PathForLogs(err.DependencyPath), err.TerragruntConfigPaths)
+	return fmt.Sprintf("Module %s specifies %s as a dependency, but that dependency was not one of the ones found while scanning subfolders: %v", util.PathForOutput(err.ModulePath), util.PathForOutput(err.DependencyPath), err.TerragruntConfigPaths)
 }
 
 type ErrorProcessingModule struct {
@@ -498,7 +498,7 @@ type ErrorProcessingModule struct {
 }
 
 func (err ErrorProcessingModule) Error() string {
-	return fmt.Sprintf("Error processing module at '%s'. How this module was found: %s. Underlying error: %v", util.PathForLogs(err.ModulePath), err.HowThisModuleWasFound, err.UnderlyingError)
+	return fmt.Sprintf("Error processing module at '%s'. How this module was found: %s. Underlying error: %v", util.PathForOutput(err.ModulePath), err.HowThisModuleWasFound, err.UnderlyingError)
 }
 
 type InfiniteRecursion struct {
