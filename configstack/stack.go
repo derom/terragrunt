@@ -26,7 +26,7 @@ func (stack *Stack) String() string {
 		modules = append(modules, fmt.Sprintf("  => %s", module.String()))
 	}
 	sort.Strings(modules)
-	return fmt.Sprintf("Stack at %s:\n%s", util.MakePathForLogs(stack.Path), strings.Join(modules, "\n"))
+	return fmt.Sprintf("Stack at %s:\n%s", util.PathForLogs(stack.Path), strings.Join(modules, "\n"))
 }
 
 // Graph creates a graphviz representation of the modules

@@ -208,20 +208,20 @@ func (module *runningModule) runModuleWhenReady(semaphore chan struct{}) {
 // Wait for all of this modules dependencies to finish executing. Return an error if any of those dependencies complete
 // with an error. Return immediately if this module has no dependencies.
 func (module *runningModule) waitForDependencies() error {
-	module.Module.TerragruntOptions.Logger.Debugf("Module %s must wait for %d dependencies to finish", util.MakePathForLogs(module.Module.Path), len(module.Dependencies))
+	module.Module.TerragruntOptions.Logger.Debugf("Module %s must wait for %d dependencies to finish", util.PathForLogs(module.Module.Path), len(module.Dependencies))
 	for len(module.Dependencies) > 0 {
 		doneDependency := <-module.DependencyDone
 		delete(module.Dependencies, doneDependency.Module.Path)
 
 		if doneDependency.Err != nil {
 			if module.Module.TerragruntOptions.IgnoreDependencyErrors {
-				module.Module.TerragruntOptions.Logger.Errorf("Dependency %s of module %s just finished with an error. Module %s will have to return an error too. However, because of --terragrunt-ignore-dependency-errors, module %s will run anyway.", util.MakePathForLogs(doneDependency.Module.Path), util.MakePathForLogs(module.Module.Path), util.MakePathForLogs(module.Module.Path), util.MakePathForLogs(module.Module.Path))
+				module.Module.TerragruntOptions.Logger.Errorf("Dependency %s of module %s just finished with an error. Module %s will have to return an error too. However, because of --terragrunt-ignore-dependency-errors, module %s will run anyway.", util.PathForLogs(doneDependency.Module.Path), util.PathForLogs(module.Module.Path), util.PathForLogs(module.Module.Path), util.PathForLogs(module.Module.Path))
 			} else {
-				module.Module.TerragruntOptions.Logger.Errorf("Dependency %s of module %s just finished with an error. Module %s will have to return an error too.", util.MakePathForLogs(doneDependency.Module.Path), util.MakePathForLogs(module.Module.Path), util.MakePathForLogs(module.Module.Path))
+				module.Module.TerragruntOptions.Logger.Errorf("Dependency %s of module %s just finished with an error. Module %s will have to return an error too.", util.PathForLogs(doneDependency.Module.Path), util.PathForLogs(module.Module.Path), util.PathForLogs(module.Module.Path))
 				return DependencyFinishedWithError{module.Module, doneDependency.Module, doneDependency.Err}
 			}
 		} else {
-			module.Module.TerragruntOptions.Logger.Debugf("Dependency %s of module %s just finished successfully. Module %s must wait on %d more dependencies.", util.MakePathForLogs(doneDependency.Module.Path), util.MakePathForLogs(module.Module.Path), util.MakePathForLogs(module.Module.Path), len(module.Dependencies))
+			module.Module.TerragruntOptions.Logger.Debugf("Dependency %s of module %s just finished successfully. Module %s must wait on %d more dependencies.", util.PathForLogs(doneDependency.Module.Path), util.PathForLogs(module.Module.Path), util.PathForLogs(module.Module.Path), len(module.Dependencies))
 		}
 	}
 
@@ -233,22 +233,20 @@ func (module *runningModule) runNow() error {
 	module.Status = Running
 
 	if module.Module.AssumeAlreadyApplied {
-		module.Module.TerragruntOptions.Logger.Debugf("Assuming module %s has already been applied and skipping it", util.MakePathForLogs(module.Module.Path))
+		module.Module.TerragruntOptions.Logger.Debugf("Assuming module %s has already been applied and skipping it", util.PathForLogs(module.Module.Path))
 		return nil
 	} else {
-		module.Module.TerragruntOptions.Logger.Debugf("Running module %s now", util.MakePathForLogs(module.Module.Path))
+		module.Module.TerragruntOptions.Logger.Debugf("Running module %s now", util.PathForLogs(module.Module.Path))
 		return module.Module.TerragruntOptions.RunTerragrunt(module.Module.TerragruntOptions)
 	}
 }
 
 // Record that a module has finished executing and notify all of this module's dependencies
 func (module *runningModule) moduleFinished(moduleErr error) {
-	modulePath := util.MakePathForLogs(module.Module.Path)
-
 	if moduleErr == nil {
-		module.Module.TerragruntOptions.Logger.Debugf("Module %s has finished successfully!", modulePath)
+		module.Module.TerragruntOptions.Logger.Debugf("Module %s has finished successfully!", util.PathForLogs(module.Module.Path))
 	} else {
-		module.Module.TerragruntOptions.Logger.Errorf("Module %s has finished with an error: %v", modulePath, moduleErr)
+		module.Module.TerragruntOptions.Logger.Errorf("Module %s has finished with an error: %v", util.PathForLogs(module.Module.Path), moduleErr)
 	}
 
 	module.Status = Finished
