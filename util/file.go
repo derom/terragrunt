@@ -432,13 +432,18 @@ func MakePathForLogs(path string) string {
 	if getwdErr != nil {
 		return finalPath
 	}
+
 	// check log level
 	if true {
-		path, err := GetPathRelativeTo(path, basePath)
+		relativePath, err := GetPathRelativeTo(path, basePath)
 		if err != nil {
 			return finalPath
 		}
-		finalPath = path
+		finalPath = relativePath
+		// if finalPath matches current dir, return human-readable but still valid path
+		if finalPath == "." {
+			finalPath = ".." + string(filepath.Separator) + filepath.Base(basePath)
+		}
 	}
 
 	return finalPath
